@@ -1,30 +1,50 @@
 #!/bin/bash
 
+echo "          ___  ________  ___  __       "
+echo "         |\\  \\|\\   ___ \\|\\  \\|\\  \\     "
+echo "         \\ \\  \\ \\  \\_|\\ \\ \\  \\//|_   "
+echo "       __ \\ \\  \\ \\  \\ \\ \\ \\   ___  \\  "
+echo "      |\\  \\_\\  \\ \\  \\_\\ \\ \\  \\ \\  \\ "
+echo "      \\ \\________\\ \\_______\\ \\__\\ \\__\\"
+echo "       \\|________|\\|_______|\\|__| \\|__|"
+
+
 TEMP_VERSION=`java -version 2>&1 | awk 'NR==1{ gsub(/"/,"");print $3}'`
-#tar name
-JDK_FILE_NAME=jdk1.8.0_161
-#tar.gz file location
-JDK_TAR_LOCATION=./jdk-8u161-linux-x64.tar.gz
-#where to install the jdk
-SETUP_LOCATION=/usr/local/jdk
 
-tar -zvxf $JDK_TAR_LOCATION -C $SETUP_LOCATION
-
-JAVA_HOME=$SETUP_LOCATION/$
-printf "JAVA_HOME=$JAVA_HOME\n" >> /etc/profile
-printf "CLASSPATH=.:$JAVA_HOME/lib.tools.jar\n" >> /etc/profile
-printf "PATH=$JAVA_HOME/bin:$PATH\n" >> /etc/profile
-printf "export JAVA_HOME CLASSPATH PATH\n" >> /etc/profile
-printf "`date`:" | tee -a log.log
-source /etc/profile
-NEW_JAVA_VERSION=`java -version 2>&1 | awk 'NR==1{ gsub(/"/,"");print $3}'`
-printf "$NEW_JAVA_VERSION\n" | tee -a log.log
-printf "$OLD_JAVA_VERSION\n" | tee -a log.log
-if [ $NEW_JAVA_VERSION = $OLD_JAVA_VERSION ]
-then
-	printf "JDK installed successfully\n"
-else
-	printf "Can not applied the jdk"
-	return 1;
+if [ `java -version 2>&1 | awk 'NR==1{ gsub(/"/,"");print $1}'` = "java"  ];then
+	echo "java envirment is install in $JAVA_HOME"
+	return 0
 fi
+
+echo "Temp java version is $TEMP_VERSION"
+
+JDK_TAR_LOCATION=`sed '/TAR_FILE_LOCATION/!d;s/.*=//' ../conf/env.properties | tr -d '\\r'`
+echo $JDK_TAR_LOCATION
+
+SETUP_LOCATION=`sed '/ENV_INSTALL_PATH=/!d;s/.*=//' ../conf/env.properties | tr -d '\\r'`
+echo $SETUP_LOCATION
+
+[ ! -d "$SETUP_LOCATION" ] && mkdir $SETUP_LOCATION
+
+echo "Depress $JDK_TAR_LOCATION ...... wati a while!"
+for line in $(tar -zxvf $JDK_TAR_LOCATION -C $SETUP_LOCATION)
+do
+        SETUP_LOCATION=$SETUP_LOCATION$line
+        break
+done
+
+echo "Script is going to setup the envirment in below path\\n"
+
+echo $SETUP_LOCATION
+
+printf "JAVA_HOME=$SETUP_LOCATION\\n" >> /etc/profile
+
+printf "CLASSPATH=.:$JAVA_HOME/lib.tools.jar\\n" >> /etc/profile
+
+printf "PATH=$JAVA_HOME/bin:$PATH\\n" >> /etc/profile
+
+printf "export JAVA_HOME CLASSPATH PATH\\n" >> /etc/profile
+
 source /etc/profile
+
+`java -version`

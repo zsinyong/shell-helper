@@ -1,3 +1,9 @@
 #!/bin/bash
-####################
-# This is a scrip to check the files and tell the installer which file is missed.
+
+if[ ! -f env.sh ];then
+    echo "Package error env.sh is missing,check the package!"
+fi
+
+if[ ! -f setup.sh];then
+    echo "Package Fatal error setup.sh is missing!"
+if
